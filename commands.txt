@@ -1,0 +1,35 @@
+docker build -t <img_name> .
+docker images
+
+
+コンテナの起動
+docker run -d -p 8080:80 -p 443:443 <img_name>
+
+コンテナの一覧
+docker ps -a
+
+コンテナの中に入る
+docker exec -it <container_id> bash
+
+コンテナを抜ける
+exit
+
+コンテナを止める
+docker stop <container_id>
+
+コンテナを削除
+docker rm <container_id>
+
+IMAGEを削除
+docker rmi <img_name>
+
+
+
+
+・作業方法
+
+初回：
+docker build -t ft_server .
+
+docker run -dp 8080:80 -p 443:443 ft_server
+docker exec -it <CONTAINER_ID> /bin/bash
