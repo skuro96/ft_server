@@ -6,23 +6,28 @@ FROM debian:buster
 RUN apt-get update
 
 # ツールをインストールし、キャッシュを削除
-RUN apt-get install -y --no-install-recommends\
+RUN apt-get install -y \
 		nginx \
 		mariadb-server mariadb-client \
 		php-cgi php-common php-fpm php-pear php-mbstring php-zip php-net-socket php-gd php-xml-util php-gettext php-mysql php-bcmath \
 		vim wget \
 	&& rm -rf /var/lib/apt/lists/*
 
+
 # worlpressをダウンロード・解凍・移動
-# chmod 与える
+# chmod 与える?
 RUN wget https://wordpress.org/wordpress-5.6.1.tar.gz \
 	&& tar -zxvf wordpress-5.6.1.tar.gz \
 	&& rm -rf wordpress-5.6.1.tar.gz \
 	&& mv wordpress/ /var/www/html/
 
+COPY srcs/wp-config.php /var/www/html/wp-config.php
+
+RUN chown -R www-data:www-data /var/www/html/wordpress
+
+
 # phpMyAdminをダウンロード・解凍・移動
-RUN set -ex;\
-	wget https://files.phpmyadmin.net/phpMyAdmin/5.0.4/phpMyAdmin-5.0.4-all-languages.tar.gz \
+RUN wget https://files.phpmyadmin.net/phpMyAdmin/5.0.4/phpMyAdmin-5.0.4-all-languages.tar.gz \
 	&& tar -zxvf phpMyAdmin-5.0.4-all-languages.tar.gz \
 	&& rm -rf phpMyAdmin-5.0.4-all-languages.tar.gz \
 	&& mv phpMyAdmin-5.0.4-all-languages/ /var/www/html/phpMyAdmin
@@ -43,4 +48,6 @@ EXPOSE 80 443
 
 # コンテナを起動させ続ける
 CMD service nginx start \
+	&& service php7.3-fpm stop \
+	&& service php7.3-fpm stop \
 	&& tail -f /dev/null
