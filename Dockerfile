@@ -44,10 +44,24 @@ RUN mkdir -p /etc/nginx/ssl \
 
 COPY srcs/default.conf /etc/nginx/sites-available/default
 
+# mysql -u root -p
+# CREATE DATABASE wordpress_db;
+# CREATE USER 'admin'@'localhost' identified by 'password';
+# GRANT ALL PRIVILEGES ON wordpress_db.* TO 'admin'@'localhost';
+# FLUSH PRIVILEGES;
+# EXIT;
+
+RUN service mysql start \
+	&& mysql -e "CREATE DATABASE wordpress_db;" \
+	&& mysql -e "CREATE USER 'admin'@'localhost' identified by 'password';" \
+	&& mysql -e "GRANT ALL PRIVILEGES ON wordpress_db.* TO 'admin'@'localhost';" \
+	&& mysql -e "FLUSH PRIVILEGES;"
+
 EXPOSE 80 443
 
 # コンテナを起動させ続ける
 CMD service nginx start \
+	&& service mysql start \
 	&& service php7.3-fpm stop \
-	&& service php7.3-fpm stop \
+	&& service php7.3-fpm start \
 	&& tail -f /dev/null
