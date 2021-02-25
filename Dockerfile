@@ -6,31 +6,26 @@ FROM debian:buster
 RUN apt-get update
 
 # ツールをインストールし、キャッシュを削除
-RUN apt-get install -y \
+RUN apt-get update \
+	&& apt-get install -y \
 		nginx \
 		mariadb-server mariadb-client \
 		php-cgi php-common php-fpm php-pear php-mbstring php-zip php-net-socket php-gd php-xml-util php-gettext php-mysql php-bcmath \
-		vim wget \
+		wget vim \
 	&& rm -rf /var/lib/apt/lists/*
 
-
 # worlpressをダウンロード・解凍・移動
-# chmod 与える?
 RUN wget https://wordpress.org/wordpress-5.6.1.tar.gz \
-	&& tar -zxvf wordpress-5.6.1.tar.gz \
+	&& mkdir -p /var/www/html/wordpress \
+	&& tar -zxvf wordpress-5.6.1.tar.gz -C /var/www/html/wordpress --strip-components 1 \
 	&& rm -rf wordpress-5.6.1.tar.gz \
-	&& mv wordpress/ /var/www/html/
-
-COPY srcs/wp-config.php /var/www/html/wp-config.php
-
-RUN chown -R www-data:www-data /var/www/html/wordpress
-
+	&& chown -R www-data:www-data /var/www/html/wordpress
 
 # phpMyAdminをダウンロード・解凍・移動
 RUN wget https://files.phpmyadmin.net/phpMyAdmin/5.0.4/phpMyAdmin-5.0.4-all-languages.tar.gz \
-	&& tar -zxvf phpMyAdmin-5.0.4-all-languages.tar.gz \
-	&& rm -rf phpMyAdmin-5.0.4-all-languages.tar.gz \
-	&& mv phpMyAdmin-5.0.4-all-languages/ /var/www/html/phpMyAdmin
+	&& mkdir -p /var/www/html/phpmyadmin \
+	&& tar -zxvf phpMyAdmin-5.0.4-all-languages.tar.gz -C /var/www/html/phpmyadmin --strip-components 1 \
+	&& rm -rf phpMyAdmin-5.0.4-all-languages.tar.gz
 
 # 自己証明書を作成
 RUN mkdir -p /etc/nginx/ssl \
@@ -42,22 +37,16 @@ RUN mkdir -p /etc/nginx/ssl \
 		-keyout /etc/nginx/ssl/server.key \
 		-subj "/C=JP/ST=Tokyo/L=Roppongi/O=42Tokyo/OU=Student/CN=skurosu"
 
-COPY srcs/default.conf /etc/nginx/sites-available/default
-
-# mysql -u root -p
-# CREATE DATABASE wordpress_db;
-# CREATE USER 'admin'@'localhost' identified by 'password';
-# GRANT ALL PRIVILEGES ON wordpress_db.* TO 'admin'@'localhost';
-# FLUSH PRIVILEGES;
-# EXIT;
-
+# データベースを作成
 RUN service mysql start \
 	&& mysql -e "CREATE DATABASE wordpress_db;" \
 	&& mysql -e "CREATE USER 'admin'@'localhost' identified by 'password';" \
 	&& mysql -e "GRANT ALL PRIVILEGES ON wordpress_db.* TO 'admin'@'localhost';" \
 	&& mysql -e "FLUSH PRIVILEGES;"
 
-EXPOSE 80 443
+# 用意したファイルをコピー
+COPY srcs/default.conf /etc/nginx/sites-available/default
+COPY srcs/wp-config.php /var/www/html/wp-config.php
 
 # コンテナを起動させ続ける
 CMD service nginx start \
