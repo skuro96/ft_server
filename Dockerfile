@@ -1,9 +1,8 @@
 # imageを指定
 FROM debian:buster
 
-# apt-get によってインストール可能なパッケージの一覧を更新する。
-# apt-get upgrade は不要。インストール済みのパッケージがないから。
-RUN apt-get update
+# 環境変数を設定
+ENV AUTOINDEX on
 
 # ツールをインストールし、キャッシュを削除
 RUN apt-get update \
@@ -47,10 +46,7 @@ RUN service mysql start \
 # 用意したファイルをコピー
 COPY srcs/default.conf /etc/nginx/sites-available/default
 COPY srcs/wp-config.php /var/www/html/wp-config.php
+COPY srcs/init.sh /tmp/init.sh
 
 # コンテナを起動させ続ける
-CMD service nginx start \
-	&& service mysql start \
-	&& service php7.3-fpm stop \
-	&& service php7.3-fpm start \
-	&& tail -f /dev/null
+ENTRYPOINT ["bash", "/tmp/init.sh"] 
