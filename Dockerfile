@@ -2,7 +2,7 @@
 FROM debian:buster
 
 # 環境変数を設定
-ENV AUTOINDEX on
+ENV AUTOINDEX=on
 
 # ツールをインストールし、キャッシュを削除
 RUN apt-get update \
@@ -49,4 +49,4 @@ COPY srcs/wp-config.php /var/www/html/wp-config.php
 COPY srcs/init.sh /tmp/init.sh
 
 # コンテナを起動させ続ける
-ENTRYPOINT ["bash", "/tmp/init.sh"] 
+CMD bash /tmp/init.sh
